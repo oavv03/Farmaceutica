@@ -1,0 +1,9 @@
+{
+  "name": "GlobalPharma Connect Plus",
+  "description": "Plataforma interactiva de salud para pacientes y profesionales. Gestión de pedidos, fidelización y soporte humano directo.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone",
+    "geolocation"
+  ]
+}
