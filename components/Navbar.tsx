@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { User } from '../types';
 import { supabase } from '../services/supabase';
 
@@ -13,9 +13,12 @@ interface NavbarProps {
 const Navbar: React.FC<NavbarProps> = ({ user, cartCount }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
 
   const handleLogout = async () => {
+    sessionStorage.removeItem('pharma_session');
     await supabase.auth.signOut();
+    window.location.reload();
   };
 
   const navLinks = [
@@ -32,14 +35,14 @@ const Navbar: React.FC<NavbarProps> = ({ user, cartCount }) => {
         <div className="flex justify-between h-20">
           <div className="flex items-center gap-8">
             <Link to="/" className="flex-shrink-0 flex items-center group">
-              <div className="bg-blue-600 p-2 rounded-xl transition-all group-hover:bg-blue-700">
+              <div className="bg-slate-900 p-2 rounded-xl transition-all group-hover:bg-blue-600">
                 <svg className="h-7 w-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
                 </svg>
               </div>
               <div className="ml-3">
                 <span className="block text-xl font-black text-slate-900 tracking-tighter leading-none">GLOBALPHARMA</span>
-                <span className="text-[9px] text-blue-600 font-black uppercase tracking-[0.2em]">Live Connection</span>
+                <span className="text-[9px] text-blue-600 font-black uppercase tracking-[0.2em]">International Network</span>
               </div>
             </Link>
 
@@ -56,8 +59,8 @@ const Navbar: React.FC<NavbarProps> = ({ user, cartCount }) => {
                 </Link>
               ))}
               {user?.role === 'pharmacy' && (
-                <Link to="/admin" className="text-[10px] font-black uppercase tracking-widest text-amber-600 hover:text-amber-700">
-                  Dashboard Farmacia
+                <Link to="/admin" className="text-[10px] font-black uppercase tracking-widest text-amber-600 hover:text-amber-700 bg-amber-50 px-3 py-1 rounded-lg">
+                  Panel de Gestión
                 </Link>
               )}
             </div>
@@ -76,20 +79,20 @@ const Navbar: React.FC<NavbarProps> = ({ user, cartCount }) => {
             </Link>
 
             {user && (
-              <div className="flex items-center gap-4">
-                <Link to="/profile" className="flex items-center gap-3 bg-white border border-slate-200 px-4 py-2 rounded-xl hover:bg-slate-50 transition-all shadow-sm">
+              <div className="flex items-center gap-4 border-l border-slate-100 pl-6">
+                <Link to="/profile" className="flex items-center gap-3">
                   <div className="text-right">
                     <span className="block text-xs font-black text-slate-900 leading-none">{user.name}</span>
-                    <span className="text-[9px] font-bold text-blue-600 uppercase tracking-widest">{user.tier} Member</span>
+                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{user.role === 'pharmacy' ? 'Admin Global' : 'Cliente Validado'}</span>
                   </div>
-                  <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center overflow-hidden border border-slate-200">
+                  <div className="w-9 h-9 rounded-xl bg-slate-100 flex items-center justify-center overflow-hidden border border-slate-200">
                      <img src={`https://i.pravatar.cc/100?u=${user.id}`} alt="User" />
                   </div>
                 </Link>
                 <button 
                   onClick={handleLogout}
-                  className="text-slate-400 hover:text-red-500 transition-colors"
-                  title="Cerrar Sesión"
+                  className="bg-slate-50 p-2 rounded-xl text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all"
+                  title="Finalizar Sesión"
                 >
                   <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -98,23 +101,18 @@ const Navbar: React.FC<NavbarProps> = ({ user, cartCount }) => {
               </div>
             )}
           </div>
-
-          <div className="md:hidden flex items-center gap-4">
-            <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="p-2 text-slate-600">
-              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                {isMenuOpen ? <path d="M6 18L18 6M6 6l12 12" /> : <path d="M4 6h16M4 12h16M4 18h16" />}
-              </svg>
-            </button>
-          </div>
         </div>
       </div>
       
-      {/* Indicador de Conexión Pública */}
-      <div className="bg-slate-900 px-4 py-1 flex justify-center items-center gap-4 overflow-hidden whitespace-nowrap">
-        <span className="flex h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse"></span>
-        <span className="text-[8px] font-black text-slate-400 uppercase tracking-[0.3em]">Servidor Global Activo</span>
-        <span className="text-slate-700">|</span>
-        <span className="text-[8px] font-black text-slate-400 uppercase tracking-[0.3em]">Conexión Cifrada Supabase TLS 1.3</span>
+      <div className="bg-slate-950 px-4 py-1.5 flex justify-center items-center gap-6 overflow-hidden">
+        <div className="flex items-center gap-2">
+          <span className="flex h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse"></span>
+          <span className="text-[8px] font-black text-slate-400 uppercase tracking-[0.3em]">Red Privada Activa</span>
+        </div>
+        <div className="h-3 w-px bg-slate-800"></div>
+        <span className="text-[8px] font-black text-slate-500 uppercase tracking-[0.3em]">ID Sesión: {user?.id.substring(0,8)}...</span>
+        <div className="h-3 w-px bg-slate-800"></div>
+        <span className="text-[8px] font-black text-blue-500 uppercase tracking-[0.3em]">Cumplimiento Normativo GXP</span>
       </div>
     </nav>
   );

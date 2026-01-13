@@ -26,6 +26,28 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const syncData = async () => {
+      // 1. Chequear primero sesión mock/demo
+      const mockSession = sessionStorage.getItem('pharma_session');
+      if (mockSession) {
+        const mockData = JSON.parse(mockSession);
+        setCurrentUser({
+          id: mockData.id,
+          role: mockData.role,
+          name: mockData.name,
+          email: mockData.email,
+          loyaltyPoints: mockData.role === 'pharmacy' ? 9999 : 450,
+          tier: mockData.role === 'pharmacy' ? 'Platinum' : 'Silver',
+          medicalRecord: {
+            allergies: ['Ninguna'],
+            chronicConditions: [],
+            lastCheckup: '2025-01-15'
+          }
+        });
+        setLoading(false);
+        return;
+      }
+
+      // 2. Si no hay demo, usar Supabase normal
       const { data: { session } } = await supabase.auth.getSession();
       
       if (session?.user) {
@@ -84,7 +106,7 @@ const App: React.FC = () => {
   };
 
   const handleOrder = async (newOrder: Order) => {
-    if (currentUser?.id) {
+    if (currentUser?.id && !currentUser.id.includes('demo')) {
       await supabase.from('orders').insert({
         user_id: currentUser.id,
         order_number: newOrder.id,
@@ -101,7 +123,7 @@ const App: React.FC = () => {
     return (
       <div className="h-screen w-screen flex flex-col items-center justify-center bg-slate-900">
         <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-6"></div>
-        <span className="text-white font-black uppercase tracking-[0.3em] text-xs">Conectando a Cloud Node</span>
+        <span className="text-white font-black uppercase tracking-[0.3em] text-xs">Accediendo a Red GlobalPharma</span>
       </div>
     );
   }
@@ -138,18 +160,19 @@ const App: React.FC = () => {
           <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3">
             <button
               onClick={() => setIsAssistantOpen(!isAssistantOpen)}
-              className="bg-blue-600 hover:bg-blue-700 text-white rounded-[1.5rem] p-4 shadow-2xl transition-all flex items-center gap-3 group active:scale-95 border-b-4 border-blue-800"
+              className="bg-blue-600 hover:bg-blue-700 text-white rounded-[1.5rem] px-6 py-4 shadow-2xl transition-all flex items-center gap-3 group active:scale-95 border-b-4 border-blue-800"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-              </svg>
-              <span className="max-w-0 overflow-hidden group-hover:max-w-xs transition-all duration-300 font-black uppercase tracking-widest text-xs">
-                {isAssistantOpen ? 'Cerrar' : 'Chat Soporte'}
-              </span>
+              <div className="relative">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                <span className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 border-2 border-blue-600 rounded-full"></span>
+              </div>
+              <span className="font-black uppercase tracking-widest text-[10px]">Atención Directa</span>
             </button>
             
             {isAssistantOpen && (
-              <div className="absolute bottom-20 right-0 w-[350px] md:w-[480px]">
+              <div className="absolute bottom-20 right-0 w-[350px] md:w-[450px]">
                 <VirtualAssistant onClose={() => setIsAssistantOpen(false)} />
               </div>
             )}
